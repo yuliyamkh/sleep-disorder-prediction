@@ -35,6 +35,7 @@ if __name__ == '__main__':
                                 )
 
     plt.xticks(rotation=45, fontsize=7)
+    plt.tight_layout()
     save_plot_as_image(folder='images', image_name='classes_unbalanced')
     plt.show()
 
@@ -54,6 +55,7 @@ if __name__ == '__main__':
                                                                    )
 
     plt.xticks(rotation=45, fontsize=7)
+    plt.tight_layout()
     save_plot_as_image(folder='images', image_name='classes_balanced')
     plt.show()
 
