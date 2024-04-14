@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+from data_exploration import save_plot_as_image
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
@@ -5,6 +7,37 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LogisticRegression
+
+
+def tune_penalty_hyperparameter(parameter_array):
+    """
+    Tune the regularization parameter (L2).
+    """
+    models = {}
+    for p in parameter_array:
+        if p == 0.0:
+            models[p] = LogisticRegression(multi_class='multinomial',
+                                           solver='lbfgs',
+                                           penalty=None,
+                                           max_iter=1000)
+        else:
+            models[p] = LogisticRegression(multi_class='multinomial',
+                                           solver='lbfgs',
+                                           penalty='l2',
+                                           C=p,
+                                           max_iter=1000)
+
+    return models
+
+
+def evaluate_model(mdl, X, y):
+    """
+    Evaluate a model using cross-validation.
+    """
+    cross_val = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    scores = cross_val_score(mdl, X, y, scoring='accuracy', cv=cross_val, n_jobs=-1)
+
+    return scores
 
 
 if __name__ == '__main__':
@@ -25,7 +58,9 @@ if __name__ == '__main__':
     model = LogisticRegression(multi_class='multinomial', solver='lbfgs')
 
     # Define the model evaluation procedure
-    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    cv = RepeatedStratifiedKFold(n_splits=10,
+                                 n_repeats=3,
+                                 random_state=1)
 
     # Evaluate the model and collect the scores
     n_scores = cross_val_score(model, X_train, y_train,
@@ -35,3 +70,17 @@ if __name__ == '__main__':
 
     # Report the model performance
     print(f"Mean Accuracy: {np.round(np.mean(n_scores), 2)}, {np.round(np.std(n_scores), 2)}")
+
+    # Tune penalty for multinomial logistic regression
+    models = tune_penalty_hyperparameter(parameter_array=[0.0, 0.0001, 0.001, 0.01, 0.1, 1.0])
+    results, names = [], []
+    for name, model in models.items():
+        scores = evaluate_model(model, X_train, y_train)
+        results.append(scores)
+        names.append(name)
+
+        print(f"MLG model with C = {name}: {np.round(np.mean(scores), 2)}, {np.round(np.std(scores), 2)}")
+
+    plt.boxplot(results, labels=names, showmeans=True)
+    save_plot_as_image(folder='images', image_name='L2_regularization')
+    plt.show()
