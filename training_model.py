@@ -1,3 +1,4 @@
+import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from data_exploration import save_plot_as_image
@@ -95,6 +96,9 @@ if __name__ == '__main__':
 
     # Fit the model
     model.fit(X_train, y_train)
+
+    # Save the model to a file
+    joblib.dump(model, 'model/multinomial_logistic_regression_model.joblib')
 
     # Check the performance of the model on train data
     y_pred_train = model.predict(X_train)
